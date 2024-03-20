@@ -3,6 +3,7 @@ import { PersonalInfo } from '../schemas/personal-info.schema';
 import { Phone } from '../schemas/phone.schema';
 
 export class CreateUserDto {
+  _id: string;
   personalInfo: PersonalInfo;
   password: string;
   salt: string;

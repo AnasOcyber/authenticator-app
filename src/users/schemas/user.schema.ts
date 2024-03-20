@@ -14,6 +14,9 @@ export class User {
   @Prop()
   password: string;
 
+  @Prop()
+  salt: string;
+
   @Prop({ type: [Phone] })
   phones: Phone[];
 

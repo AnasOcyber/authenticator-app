@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schemas/user.schema';
 import { FilterQuery, Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersRepository {
@@ -9,24 +10,35 @@ export class UsersRepository {
     @InjectModel(User.name) private readonly usersModel: Model<UserDocument>,
   ) {}
 
-  async findOne(userFilterQuery: FilterQuery<User>): Promise<User> {
-    return await this.usersModel.findOne(userFilterQuery);
+  async findOne(filterQuery: FilterQuery<User>): Promise<User> {
+    return await this.usersModel.findOne(filterQuery);
   }
 
-  async find(userFilterQuery: FilterQuery<User>): Promise<User[]> {
-    return await this.usersModel.find(userFilterQuery);
+  async find(filterQuery: FilterQuery<User>): Promise<User[]> {
+    return await this.usersModel.find(filterQuery);
   }
 
   async create(user: User): Promise<User> {
-    return await this.usersModel.create(user);
+    const salt = await bcrypt.genSalt();
+    const password = await bcrypt.hash(user.password, salt);
+
+    return await this.usersModel.create({
+      ...user,
+      password: password,
+      salt: salt,
+    });
   }
 
   async findOneAndUpdate(
-    userFilterQuery: FilterQuery<User>,
-    user: Partial<User>,
+    filterQuery: FilterQuery<User>,
+    { emails, phones, personalInfo, tags }: Partial<User>,
   ): Promise<User> {
-    return await this.usersModel.findOneAndUpdate(userFilterQuery, user, {
-      new: true,
-    });
+    return await this.usersModel.findOneAndUpdate(
+      filterQuery,
+      { $set: { emails, phones, personalInfo, tags } },
+      {
+        new: true,
+      },
+    );
   }
 }

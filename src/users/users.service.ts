@@ -9,7 +9,7 @@ export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
   getUserById(userId: string): Promise<User> {
-    return this.usersRepository.findOne({ userId });
+    return this.usersRepository.findOne({ _id: userId });
   }
 
   getUsers(): Promise<User[]> {
@@ -21,6 +21,6 @@ export class UsersService {
   }
 
   updateUser(userId: string, userUpdates: UpdateUserDto): Promise<User> {
-    return this.usersRepository.findOneAndUpdate({ userId }, userUpdates);
+    return this.usersRepository.findOneAndUpdate({ _id: userId }, userUpdates);
   }
 }

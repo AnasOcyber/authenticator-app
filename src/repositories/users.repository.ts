@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
-import { UserDto } from 'src/dto/user/user.dto';
+import { CreateUserDto } from 'src/dto/user/create-user.dto';
 
 @Injectable()
 export class UsersRepository {
@@ -11,35 +11,31 @@ export class UsersRepository {
     @InjectModel(User.name) private readonly usersModel: Model<UserDocument>,
   ) {}
 
-  async findOne(filterQuery: FilterQuery<User>): Promise<UserDto> {
-    const user = await this.usersModel.findOne(filterQuery);
-
-    return this.serializeUser(user);
+  async findOne(filterQuery: FilterQuery<UserDocument>): Promise<UserDocument> {
+    return await this.usersModel.findOne(filterQuery);
   }
 
-  async find(filterQuery: FilterQuery<User>): Promise<UserDto[]> {
+  async find(filterQuery: FilterQuery<UserDocument>): Promise<UserDocument[]> {
     const users = await this.usersModel.find(filterQuery);
 
-    return users.map((user) => this.serializeUser(user));
+    return users;
   }
 
-  async create(user: User): Promise<UserDto> {
+  async create(user: CreateUserDto): Promise<UserDocument> {
     const salt = await bcrypt.genSalt();
     const password = await bcrypt.hash(user.password, salt);
 
-    const newUser = await this.usersModel.create({
+    return await this.usersModel.create({
       ...user,
       password: password,
       salt: salt,
     });
-
-    return this.serializeUser(newUser);
   }
 
   async findOneAndUpdate(
-    filterQuery: FilterQuery<User>,
-    { emails, phones, personalInfo, tags }: Partial<User>,
-  ): Promise<UserDto> {
+    filterQuery: FilterQuery<UserDocument>,
+    { emails, phones, personalInfo, tags }: Partial<UserDocument>,
+  ): Promise<UserDocument> {
     const user = await this.usersModel.findOneAndUpdate(
       filterQuery,
       { $set: { emails, phones, personalInfo, tags } },
@@ -47,22 +43,12 @@ export class UsersRepository {
         new: true,
       },
     );
-
-    return this.serializeUser(user);
+    return user;
   }
 
-  async findByEmail(filterQuery: FilterQuery<User>): Promise<User> {
+  async findByEmail(
+    filterQuery: FilterQuery<UserDocument>,
+  ): Promise<UserDocument> {
     return await this.usersModel.findOne(filterQuery);
-  }
-
-  private serializeUser(user: any): UserDto {
-    const { personalInfo, phones, emails, tags, _id } = user;
-    return {
-      _id,
-      personalInfo,
-      phones,
-      emails,
-      tags,
-    };
   }
 }

@@ -1,8 +1,8 @@
+import * as bcrypt from 'bcrypt';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from '../schemas/user.schema';
 import { FilterQuery, Model } from 'mongoose';
-import * as bcrypt from 'bcrypt';
+import { User, UserDocument } from '../schemas/user.schema';
 import { UserDto } from 'src/dto/user/user.dto';
 
 @Injectable()
@@ -49,6 +49,10 @@ export class UsersRepository {
     );
 
     return this.serializeUser(user);
+  }
+
+  async findByEmail(filterQuery: FilterQuery<User>): Promise<User> {
+    return await this.usersModel.findOne(filterQuery);
   }
 
   private serializeUser(user: any): UserDto {

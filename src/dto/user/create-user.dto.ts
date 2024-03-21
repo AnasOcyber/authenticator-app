@@ -1,4 +1,10 @@
-import { IsArray, IsNotEmpty, IsObject, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsNotEmpty,
+  IsObject,
+  IsOptional,
+} from 'class-validator';
 import { Email } from 'src/schemas/email.schema';
 import { PersonalInfo } from 'src/schemas/personal-info.schema';
 import { Phone } from 'src/schemas/phone.schema';

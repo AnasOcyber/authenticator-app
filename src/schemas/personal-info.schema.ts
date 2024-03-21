@@ -7,4 +7,7 @@ export class PersonalInfo {
 
   @Prop()
   lastName: string;
+
+  @Prop([String])
+  tags: string[];
 }

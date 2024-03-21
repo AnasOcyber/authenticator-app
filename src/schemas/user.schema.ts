@@ -3,7 +3,6 @@ import { HydratedDocument } from 'mongoose';
 import { Email } from './email.schema';
 import { PersonalInfo } from './personal-info.schema';
 import { Phone } from './phone.schema';
-import { Exclude } from 'class-transformer';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -12,7 +11,6 @@ export class User {
   @Prop({ type: PersonalInfo })
   personalInfo: PersonalInfo;
 
-  @Exclude()
   @Prop()
   password: string;
 

@@ -1,13 +1,14 @@
 import {
-  ForbiddenException,
+  BadRequestException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { validate } from 'class-validator';
 import { jwtConstants } from 'src/auth-secrets/jwt.constants';
 import { LoginDto } from 'src/dto/auth/login.dto';
-import { RegisterDto } from 'src/dto/auth/register.dto';
+import { CreateUserDto } from 'src/dto/user/create-user.dto';
 import { UsersRepository } from 'src/repositories/users.repository';
 
 @Injectable()
@@ -41,10 +42,23 @@ export class AuthService {
         };
       }
     }
-    throw new UnauthorizedException('Invalid credentials');
+    throw new UnauthorizedException();
   }
 
-  async register(registerDto: RegisterDto) {
-    return await this.usersRepository.create(registerDto);
+  async register(registerDto: CreateUserDto) {
+    const { personalInfo, password, phones, emails, tags } = registerDto;
+
+    const errors = await validate(registerDto);
+    if (errors.length > 0) {
+      throw new BadRequestException();
+    }
+
+    return await this.usersRepository.create({
+      personalInfo,
+      password,
+      phones,
+      emails,
+      tags,
+    });
   }
 }

@@ -20,14 +20,14 @@ export class UsersRepository {
   async findOne(filterQuery: FilterQuery<UserDocument>): Promise<UserDto> {
     const user = await this.usersModel.findOne(filterQuery);
     if (user) this.serializeUser(user);
-    throw new NotFoundException('User not found');
+    throw new NotFoundException();
   }
 
   async find(filterQuery: FilterQuery<UserDocument>): Promise<UserDto[]> {
     const users = await this.usersModel.find(filterQuery);
     if (users) return users.map((user) => this.serializeUser(user));
 
-    throw new NotFoundException('User not found');
+    throw new NotFoundException();
   }
 
   async create(user: CreateUserDto): Promise<UserDto> {
@@ -35,7 +35,7 @@ export class UsersRepository {
       'emails.identifier': user.emails[0].identifier,
     });
 
-    if (userExists) throw new ForbiddenException('User already exists');
+    if (userExists) throw new ForbiddenException();
 
     const generatedSalt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(user.password, generatedSalt);
@@ -78,7 +78,7 @@ export class UsersRepository {
       const user = await existingUser.save();
       return this.serializeUser(user);
     }
-    throw new NotFoundException('User not found');
+    throw new NotFoundException();
   }
 
   async findByEmail(

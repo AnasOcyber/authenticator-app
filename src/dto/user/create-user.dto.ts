@@ -9,8 +9,6 @@ export class CreateUserDto {
   @IsNotEmpty()
   password: string;
 
-  salt: string;
-
   phones: Phone[];
 
   emails: Email[];

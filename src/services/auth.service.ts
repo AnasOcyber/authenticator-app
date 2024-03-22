@@ -21,7 +21,7 @@ export class AuthService {
   async login({
     email,
     password,
-  }: LoginDto): Promise<{ access_token: string } | string> {
+  }: LoginDto): Promise<{ access_token: string }> {
     const user = await this.usersRepository.findByEmail({
       'emails.identifier': email,
     });
@@ -45,10 +45,10 @@ export class AuthService {
     throw new UnauthorizedException();
   }
 
-  async register(registerDto: CreateUserDto) {
-    const { personalInfo, password, phones, emails, tags } = registerDto;
+  async register(userDto: CreateUserDto) {
+    const { personalInfo, password, phones, emails, tags } = userDto;
 
-    const errors = await validate(registerDto);
+    const errors = await validate(userDto);
     if (errors.length > 0) {
       throw new BadRequestException();
     }

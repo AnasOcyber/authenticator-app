@@ -1,8 +1,9 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersRepository } from '../repositories/users.repository';
 import { CreateUserDto } from 'src/dto/user/create-user.dto';
 import { UpdateUserDto } from 'src/dto/user/update-user.dto';
 import { UserDto } from 'src/dto/user/user.dto';
+import { validate } from 'class-validator';
 
 @Injectable()
 export class UsersService {
@@ -17,13 +18,20 @@ export class UsersService {
   }
 
   async createUser(userDto: CreateUserDto): Promise<UserDto> {
-    const userExists = await this.usersRepository.findOne({
-      'emails.identifier': userDto.emails[0].identifier,
+    const { personalInfo, password, phones, emails, tags } = userDto;
+
+    const errors = await validate(userDto);
+    if (errors.length > 0) {
+      throw new BadRequestException();
+    }
+
+    return this.usersRepository.create({
+      personalInfo,
+      password,
+      phones,
+      emails,
+      tags,
     });
-
-    if (userExists) throw new ForbiddenException();
-
-    return this.usersRepository.create(userDto);
   }
 
   updateUser(userId: string, userUpdates: UpdateUserDto): Promise<UserDto> {

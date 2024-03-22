@@ -16,7 +16,7 @@ export class UsersService {
     return this.usersRepository.find({});
   }
 
-  createUser(userDto: CreateUserDto): Promise<UserDocument | string> {
+  createUser(userDto: CreateUserDto): Promise<UserDocument> {
     return this.usersRepository.create(userDto);
   }
 
@@ -24,6 +24,6 @@ export class UsersService {
     userId: string,
     userUpdates: UpdateUserDto,
   ): Promise<UserDocument> {
-    return this.usersRepository.findOneAndUpdate({ _id: userId }, userUpdates);
+    return this.usersRepository.update({ _id: userId }, userUpdates);
   }
 }

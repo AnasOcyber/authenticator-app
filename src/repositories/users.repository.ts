@@ -8,6 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { CreateUserDto } from 'src/dto/user/create-user.dto';
+import { UpdateUserDto } from 'src/dto/user/update-user.dto';
 
 @Injectable()
 export class UsersRepository {
@@ -44,18 +45,33 @@ export class UsersRepository {
     });
   }
 
-  async findOneAndUpdate(
+  async update(
     filterQuery: FilterQuery<UserDocument>,
-    userUpdates: Partial<UserDocument>,
+    userUpdates: UpdateUserDto,
   ): Promise<UserDocument> {
-    const user = await this.usersModel.findOneAndUpdate(
-      filterQuery,
-      userUpdates,
-      {
-        new: true,
-      },
-    );
-    if (user) return user;
+    const existingUser = await this.usersModel.findById(filterQuery);
+    if (existingUser) {
+      if (userUpdates.personalInfo) {
+        existingUser.personalInfo = {
+          ...existingUser.personalInfo,
+          ...userUpdates.personalInfo,
+        };
+      }
+
+      if (userUpdates.phones.length !== 0) {
+        existingUser.phones = userUpdates.phones;
+      }
+
+      if (userUpdates.emails.length !== 0) {
+        existingUser.emails = userUpdates.emails;
+      }
+
+      if (userUpdates.tags.length !== 0) {
+        existingUser.tags = userUpdates.tags;
+      }
+
+      return await existingUser.save();
+    }
     throw new NotFoundException('User not found');
   }
 

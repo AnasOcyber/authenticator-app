@@ -21,7 +21,13 @@ export class UsersRepository {
     return users;
   }
 
-  async create(user: CreateUserDto): Promise<UserDocument> {
+  async create(user: CreateUserDto): Promise<UserDocument | string> {
+    const userExists = await this.findByEmail({
+      'emails.identifier': user.emails[0].identifier,
+    });
+
+    if (userExists) return 'Already exists';
+
     const salt = await bcrypt.genSalt();
     const password = await bcrypt.hash(user.password, salt);
 

@@ -16,7 +16,7 @@ export class UsersService {
     return this.usersRepository.find({});
   }
 
-  createUser(userDto: CreateUserDto): Promise<UserDocument> {
+  createUser(userDto: CreateUserDto): Promise<UserDocument | string> {
     return this.usersRepository.create(userDto);
   }
 

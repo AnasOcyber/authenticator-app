@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { jwtConstants } from 'src/auth-secrets/jwt.constants';
 import { LoginDto } from 'src/dto/auth/login.dto';
+import { RegisterDto } from 'src/dto/auth/register.dto';
 import { UsersRepository } from 'src/repositories/users.repository';
 
 @Injectable()
@@ -26,9 +27,7 @@ export class AuthService {
       if (isValid) {
         const payload = {
           userId: user._id,
-          email: user.emails[0].identifier,
           isEmailVerified: user.emails[0].isVerified,
-          phone: user.phones[0].identifier,
           isPhoneVerified: user.phones[0].isVerified,
         };
         return {
@@ -39,5 +38,15 @@ export class AuthService {
       }
     }
     return 'Invalid credentials';
+  }
+
+  async register(registerDto: RegisterDto) {
+    const user = await this.usersRepository.findByEmail({
+      'emails.identifier': registerDto.emails[0].identifier,
+    });
+
+    if (user) return 'Already exists';
+
+    return await this.usersRepository.create(registerDto);
   }
 }

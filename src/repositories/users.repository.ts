@@ -1,5 +1,9 @@
 import * as bcrypt from 'bcrypt';
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
@@ -12,21 +16,24 @@ export class UsersRepository {
   ) {}
 
   async findOne(filterQuery: FilterQuery<UserDocument>): Promise<UserDocument> {
-    return await this.usersModel.findOne(filterQuery);
+    const user = await this.usersModel.findOne(filterQuery);
+    if (user) return user;
+    throw new NotFoundException('User not found');
   }
 
   async find(filterQuery: FilterQuery<UserDocument>): Promise<UserDocument[]> {
     const users = await this.usersModel.find(filterQuery);
-
-    return users;
+    if (users) return users;
+    throw new NotFoundException('User not found');
   }
 
-  async create(user: CreateUserDto): Promise<UserDocument | string> {
+  async create(user: CreateUserDto): Promise<UserDocument> {
     const userExists = await this.findByEmail({
       'emails.identifier': user.emails[0].identifier,
+      'phones.identifier': user.phones[0].identifier,
     });
 
-    if (userExists) return 'Already exists';
+    if (userExists) throw new ForbiddenException('User already exists');
 
     const salt = await bcrypt.genSalt();
     const password = await bcrypt.hash(user.password, salt);
@@ -49,7 +56,8 @@ export class UsersRepository {
         new: true,
       },
     );
-    return user;
+    if (user) return user;
+    throw new NotFoundException('User not found');
   }
 
   async findByEmail(

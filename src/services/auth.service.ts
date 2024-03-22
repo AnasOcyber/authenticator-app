@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { jwtConstants } from 'src/auth-secrets/jwt.constants';
@@ -37,16 +41,10 @@ export class AuthService {
         };
       }
     }
-    return 'Invalid credentials';
+    throw new UnauthorizedException('Invalid credentials');
   }
 
   async register(registerDto: RegisterDto) {
-    const user = await this.usersRepository.findByEmail({
-      'emails.identifier': registerDto.emails[0].identifier,
-    });
-
-    if (user) return 'Already exists';
-
     return await this.usersRepository.create(registerDto);
   }
 }

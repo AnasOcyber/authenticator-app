@@ -9,6 +9,7 @@ import { FilterQuery, Model } from 'mongoose';
 import { User, UserDocument } from '../schemas/user.schema';
 import { CreateUserDto } from 'src/dto/user/create-user.dto';
 import { UpdateUserDto } from 'src/dto/user/update-user.dto';
+import { UserDto } from 'src/dto/user/user.dto';
 
 @Injectable()
 export class UsersRepository {
@@ -16,40 +17,44 @@ export class UsersRepository {
     @InjectModel(User.name) private readonly usersModel: Model<UserDocument>,
   ) {}
 
-  async findOne(filterQuery: FilterQuery<UserDocument>): Promise<UserDocument> {
+  async findOne(filterQuery: FilterQuery<UserDocument>): Promise<UserDto> {
     const user = await this.usersModel.findOne(filterQuery);
-    if (user) return user;
+    if (user) this.serializeUser(user);
     throw new NotFoundException('User not found');
   }
 
-  async find(filterQuery: FilterQuery<UserDocument>): Promise<UserDocument[]> {
+  async find(filterQuery: FilterQuery<UserDocument>): Promise<UserDto[]> {
     const users = await this.usersModel.find(filterQuery);
-    if (users) return users;
+    if (users) return users.map((user) => this.serializeUser(user));
+
     throw new NotFoundException('User not found');
   }
 
-  async create(user: CreateUserDto): Promise<UserDocument> {
+  async create(user: CreateUserDto): Promise<UserDto> {
     const userExists = await this.findByEmail({
       'emails.identifier': user.emails[0].identifier,
     });
 
     if (userExists) throw new ForbiddenException('User already exists');
 
-    const salt = await bcrypt.genSalt();
-    const password = await bcrypt.hash(user.password, salt);
+    const generatedSalt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(user.password, generatedSalt);
 
-    return await this.usersModel.create({
+    const newUser = await this.usersModel.create({
       ...user,
-      password: password,
-      salt: salt,
+      password: hashedPassword,
+      salt: generatedSalt,
     });
+
+    return this.serializeUser(newUser);
   }
 
   async update(
     filterQuery: FilterQuery<UserDocument>,
     userUpdates: UpdateUserDto,
-  ): Promise<UserDocument> {
+  ): Promise<UserDto> {
     const existingUser = await this.usersModel.findById(filterQuery);
+
     if (existingUser) {
       if (userUpdates.personalInfo) {
         existingUser.personalInfo = {
@@ -70,7 +75,8 @@ export class UsersRepository {
         existingUser.tags = userUpdates.tags;
       }
 
-      return await existingUser.save();
+      const user = await existingUser.save();
+      return this.serializeUser(user);
     }
     throw new NotFoundException('User not found');
   }
@@ -79,5 +85,10 @@ export class UsersRepository {
     filterQuery: FilterQuery<UserDocument>,
   ): Promise<UserDocument> {
     return await this.usersModel.findOne(filterQuery);
+  }
+
+  private serializeUser(user: UserDocument): UserDto {
+    const { _id, personalInfo, phones, emails, tags } = user;
+    return { _id, personalInfo, phones, emails, tags };
   }
 }

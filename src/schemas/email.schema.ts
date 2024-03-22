@@ -1,15 +1,15 @@
-import { Optional } from '@nestjs/common';
-import { Schema, Prop } from '@nestjs/mongoose';
+import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 
 @Schema({ _id: false })
 export class Email {
   @Prop()
   identifier: string;
 
-  @Prop()
-  @Optional()
+  @Prop({ default: false })
   isVerified: boolean;
 
   @Prop([String])
   tags: string[];
 }
+
+export const EmailSchema = SchemaFactory.createForClass(Email);

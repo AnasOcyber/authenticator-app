@@ -30,7 +30,6 @@ export class UsersRepository {
   async create(user: CreateUserDto): Promise<UserDocument> {
     const userExists = await this.findByEmail({
       'emails.identifier': user.emails[0].identifier,
-      'phones.identifier': user.phones[0].identifier,
     });
 
     if (userExists) throw new ForbiddenException('User already exists');
@@ -47,11 +46,11 @@ export class UsersRepository {
 
   async findOneAndUpdate(
     filterQuery: FilterQuery<UserDocument>,
-    { emails, phones, personalInfo, tags }: Partial<UserDocument>,
+    userUpdates: Partial<UserDocument>,
   ): Promise<UserDocument> {
     const user = await this.usersModel.findOneAndUpdate(
       filterQuery,
-      { $set: { emails, phones, personalInfo, tags } },
+      userUpdates,
       {
         new: true,
       },

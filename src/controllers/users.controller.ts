@@ -10,12 +10,12 @@ export class UsersController {
 
   @Get(':userId')
   getUserById(@Param('userId') userId: string): Promise<UserDto> {
-    return this.usersService.getUserById(userId);
+    return this.usersService.findUserById(userId);
   }
 
   @Get()
-  getUsers(): Promise<UserDto[]> {
-    return this.usersService.getUsers();
+  getAllUsers(): Promise<UserDto[]> {
+    return this.usersService.findAllUsers();
   }
 
   @Post()

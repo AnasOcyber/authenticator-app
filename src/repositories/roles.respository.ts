@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { RolesDto } from 'src/dto/role/role.dto';
 import { Role } from 'src/schemas/roles/roles.schema';
 
 @Injectable()
@@ -15,11 +16,11 @@ export class RolesRepository {
     return await this.rolesModel.find();
   }
 
-  async create(roleDto: any): Promise<Role> {
+  async create(roleDto: RolesDto): Promise<Role> {
     return await this.rolesModel.create(roleDto);
   }
 
-  async update(id: string, roleDto: any): Promise<Role> {
+  async update(id: string, roleDto: RolesDto): Promise<Role> {
     const role = await this.rolesModel.findById(id);
     if (role) {
       return await role.updateOne(roleDto);

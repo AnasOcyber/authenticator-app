@@ -34,6 +34,7 @@ export class AuthService {
           userId: user._id,
           isEmailVerified: user.emails[0].isVerified,
           isPhoneVerified: user.phones[0].isVerified,
+          roles: user.roles,
         };
         return {
           access_token: this.jwtService.sign(payload, {
@@ -46,7 +47,7 @@ export class AuthService {
   }
 
   async register(userDto: CreateUserDto) {
-    const { personalInfo, password, phones, emails, tags } = userDto;
+    const { personalInfo, password, phones, emails, tags, roles } = userDto;
 
     const errors = await validate(userDto);
     if (errors.length > 0) {
@@ -59,6 +60,7 @@ export class AuthService {
       phones,
       emails,
       tags,
+      roles,
     });
   }
 }

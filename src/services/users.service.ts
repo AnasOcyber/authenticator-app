@@ -18,7 +18,7 @@ export class UsersService {
   }
 
   async createUser(userDto: CreateUserDto): Promise<UserDto> {
-    const { personalInfo, password, phones, emails, tags } = userDto;
+    const { personalInfo, password, phones, emails, tags, roles } = userDto;
 
     const errors = await validate(userDto);
     if (errors.length > 0) {
@@ -31,6 +31,7 @@ export class UsersService {
       phones,
       emails,
       tags,
+      roles,
     });
   }
 

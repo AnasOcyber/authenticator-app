@@ -40,6 +40,8 @@ export class UsersRepository {
     const generatedSalt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(user.password, generatedSalt);
 
+    console.log(user);
+
     const newUser = await this.usersModel.create({
       ...user,
       password: hashedPassword,
@@ -88,7 +90,7 @@ export class UsersRepository {
   }
 
   private serializeUser(user: UserDocument): UserDto {
-    const { _id, personalInfo, phones, emails, tags } = user;
-    return { _id, personalInfo, phones, emails, tags };
+    const { _id, personalInfo, phones, emails, tags, roles } = user;
+    return { _id, personalInfo, phones, emails, tags, roles };
   }
 }

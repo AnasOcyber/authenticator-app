@@ -2,7 +2,7 @@
 /dist
 /node_modules
 
-src/auth-secrets
+src/constants
 
 # Logs
 logs

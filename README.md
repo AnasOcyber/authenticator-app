@@ -22,9 +22,23 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+A starter project for building authentication and authorization functionality in NestJS using MongoDB with Mongoose.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
+
+- User registration with encrypted password storage
+- User login with JWT authentication
+- Role-based access control (RBAC)
+- Protected routes based on user roles
+- MongoDB integration with Mongoose
+- Error handling and validation
+
+## Prerequisites
+
+Before running this project, make sure you have the following installed:
+
+- Node.js and npm
+- MongoDB
 
 ## Installation
 
@@ -58,16 +72,6 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
-## Support
+## API swagger documentation
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+Click this link when the app is up and running [Swagger API](ttp://localhost:3000/api)

@@ -1,39 +1,43 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { RolesDto } from 'src/dto/role/role.dto';
-import { Role } from 'src/schemas/roles/roles.schema';
+import { FilterQuery, Model } from 'mongoose';
+import { RolesDto } from 'src/dtos/role/role.dto';
+import { Role, RoleDocument } from 'src/schemas/roles/role.schema.';
 
 @Injectable()
 export class RolesRepository {
-  constructor(@InjectModel(Role.name) private rolesModel: Model<Role>) {}
-
-  async find(id: string): Promise<Role> {
-    return await this.rolesModel.findById(id);
-  }
-
-  async findAll(): Promise<Role[]> {
-    return await this.rolesModel.find();
-  }
-
-  async create(roleDto: RolesDto): Promise<Role> {
+  constructor(
+    @InjectModel(Role.name) private rolesModel: Model<RoleDocument>,
+  ) {}
+  async create(roleDto: RolesDto): Promise<RoleDocument> {
     return await this.rolesModel.create(roleDto);
   }
 
-  async update(id: string, roleDto: RolesDto): Promise<Role> {
-    const role = await this.rolesModel.findById(id);
+  async findAll(
+    filterQuery: FilterQuery<RoleDocument>,
+  ): Promise<RoleDocument[]> {
+    return await this.rolesModel.find(filterQuery);
+  }
+
+  async find(filterQuery: FilterQuery<RoleDocument>): Promise<RoleDocument> {
+    return await this.rolesModel.findById(filterQuery);
+  }
+
+  async update(
+    filterQuery: FilterQuery<RoleDocument>,
+    roleDto: RolesDto,
+  ): Promise<RoleDocument> {
+    const role = await this.rolesModel.findById(filterQuery);
     if (role) {
       return await role.updateOne(roleDto);
     }
     throw new NotFoundException();
   }
 
-  async delete(id: string): Promise<boolean> {
-    const role = await this.rolesModel.findById(id);
-    if (role) {
-      const { acknowledged } = await role.deleteOne();
-      return acknowledged;
-    }
+  async delete(
+    filterQuery: FilterQuery<RoleDocument>,
+  ): Promise<{ message: string }> {
+    await this.rolesModel.findByIdAndDelete(filterQuery);
     throw new NotFoundException();
   }
 }

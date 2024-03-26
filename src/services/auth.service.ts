@@ -1,66 +1,64 @@
-import {
-  BadRequestException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import { validate } from 'class-validator';
-import { jwtConstants } from 'src/constants/jwt.constants';
-import { LoginDto } from 'src/dto/auth/login.dto';
-import { CreateUserDto } from 'src/dto/user/create-user.dto';
-import { UsersRepository } from 'src/repositories/users.repository';
+import { Injectable } from '@nestjs/common';
+import { AuthDto } from 'src/dtos/auth/auth.dto';
+import { AuthRepository } from 'src/repositories/auth.repository';
+import { Auth, AuthDocument } from 'src/schemas/auth/auth.schema';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private usersRepository: UsersRepository,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private authRepository: AuthRepository) {}
 
-  async login({
-    email,
-    password,
-  }: LoginDto): Promise<{ access_token: string }> {
-    const user = await this.usersRepository.findByEmail({
-      'emails.identifier': email,
-    });
-
-    if (user) {
-      const isValid = await bcrypt.compare(password, user.password);
-
-      if (isValid) {
-        const payload = {
-          userId: user._id,
-          isEmailVerified: user.emails[0].isVerified,
-          isPhoneVerified: user.phones[0].isVerified,
-          roles: user.roles,
-        };
-        return {
-          access_token: this.jwtService.sign(payload, {
-            secret: jwtConstants.secret,
-          }),
-        };
-      }
-    }
-    throw new UnauthorizedException();
+  async createAuth(authDto: AuthDto): Promise<Auth> {
+    return await this.authRepository.create(authDto);
   }
 
-  async register(userDto: CreateUserDto) {
-    const { personalInfo, password, phones, emails, tags, roles } = userDto;
-
-    const errors = await validate(userDto);
-    if (errors.length > 0) {
-      throw new BadRequestException();
-    }
-
-    return await this.usersRepository.create({
-      personalInfo,
-      password,
-      phones,
-      emails,
-      tags,
-      roles,
-    });
+  async findAllAuths(): Promise<AuthDocument[]> {
+    const filterQuery = {};
+    return await this.authRepository.find(filterQuery);
   }
+
+  async findOneAuth(authId: string): Promise<AuthDocument> {
+    const filterQuery = { _id: authId };
+    return await this.authRepository.findOne(filterQuery);
+  }
+
+  async updateAuth(
+    authId: string,
+    authUpdates: AuthDto,
+  ): Promise<AuthDocument> {
+    const filterQuery = { _id: authId };
+    return await this.authRepository.update(filterQuery, authUpdates);
+  }
+
+  async deleteAuth(userId: string): Promise<{ message: string }> {
+    const filterQuery = { userId: userId };
+    return await this.authRepository.delete(filterQuery);
+  }
+
+  // async login({
+  //   email,
+  //   password,
+  // }: LoginDto): Promise<{ access_token: string }> {
+  //   const user = await this.usersRepository.findByEmail({
+  //     'emails.identifier': email,
+  //   });
+  //   if (user) {
+  //     const isValid = await bcrypt.compare(password, user.password);
+  //     if (isValid) {
+  //       const payload = {
+  //         userId: user._id,
+  //         isEmailVerified: user.emails[0].isVerified,
+  //         isPhoneVerified: user.phones[0].isVerified,
+  //       };
+  //       return {
+  //         access_token: this.jwtService.sign(payload, {
+  //           secret: jwtConstants.secret,
+  //         }),
+  //       };
+  //     }
+  //   }
+  //   throw new UnauthorizedException();
+  // }
+  // async register(userDto: UserDto) {
+  //   return await this.usersService.createUser(userDto);
+  // }
 }

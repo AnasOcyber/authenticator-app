@@ -1,37 +1,69 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { Roles } from 'src/decorators/roles.decorator';
-import { LoginDto } from 'src/dto/auth/login.dto';
-import { CreateUserDto } from 'src/dto/user/create-user.dto';
-import { AuthGuard } from 'src/guards/auth.guard';
-import { RolesGuard } from 'src/guards/role.guard';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+} from '@nestjs/common';
+import { AuthDto } from 'src/dtos/auth/auth.dto';
+import { AuthDocument } from 'src/schemas/auth/auth.schema';
 import { AuthService } from 'src/services/auth.service';
-import { Role } from 'src/utils/fetchRoles';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('login')
-  login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  @Post()
+  createAuth(authDto: AuthDto) {
+    return this.authService.createAuth(authDto);
   }
 
-  @Post('register')
-  register(@Body() registerDto: CreateUserDto) {
-    return this.authService.register(registerDto);
+  @Get()
+  getAllAuths(): Promise<AuthDocument[]> {
+    return this.authService.findAllAuths();
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.Guest)
-  @Get('profile')
-  getProfile() {
-    return 'Profile';
+  @Get(':authId')
+  getAuthById(@Param('authId') authId: string): Promise<AuthDocument> {
+    return this.authService.findOneAuth(authId);
   }
 
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.Admin)
-  @Get('dashboard')
-  getDashboard() {
-    return 'Dashboard';
+  @Put(':authId')
+  updateAuth(
+    @Param('authId') authId: string,
+    @Body() authDto: AuthDto,
+  ): Promise<AuthDocument> {
+    return this.authService.updateAuth(authId, authDto);
   }
+
+  @Delete(':authId')
+  deleteAuth(@Param('authId') authId: string): Promise<{ message: string }> {
+    return this.authService.deleteAuth(authId);
+  }
+
+  // @Post('login')
+  // login(@Body() loginDto: LoginDto) {
+  //   // return this.authService.login(loginDto);
+  // }
+
+  // @Post('register')
+  // register(@Body() userDto: UserDto) {
+  //   // return this.authService.register(userDto);
+  // }
+
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(Role.Guest)
+  // @Get('profile')
+  // getProfile() {
+  //   return 'Profile';
+  // }
+
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Roles(Role.Admin)
+  // @Get('dashboard')
+  // getDashboard() {
+  //   return 'Dashboard';
+  // }
 }

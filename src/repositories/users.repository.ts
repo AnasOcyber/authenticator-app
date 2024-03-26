@@ -6,79 +6,93 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { FilterQuery, Model } from 'mongoose';
-import { User, UserDocument } from '../schemas/user.schema';
-import { CreateUserDto } from 'src/dto/user/create-user.dto';
-import { UpdateUserDto } from 'src/dto/user/update-user.dto';
-import { UserDto } from 'src/dto/user/user.dto';
+import { User, UserDocument } from '../schemas/users/user.schema';
+import { UserDto } from 'src/dtos/user/user.dto';
+import { AuthService } from 'src/services/auth.service';
 
 @Injectable()
 export class UsersRepository {
   constructor(
     @InjectModel(User.name) private readonly usersModel: Model<UserDocument>,
+    private authService: AuthService,
   ) {}
 
-  async findOne(filterQuery: FilterQuery<UserDocument>): Promise<UserDto> {
-    const user = await this.usersModel.findOne(filterQuery);
-    if (user) this.serializeUser(user);
-    throw new NotFoundException();
-  }
-
-  async find(filterQuery: FilterQuery<UserDocument>): Promise<UserDto[]> {
-    const users = await this.usersModel.find(filterQuery);
-    if (users) return users.map((user) => this.serializeUser(user));
-
-    throw new NotFoundException();
-  }
-
-  async create(user: CreateUserDto): Promise<UserDto> {
-    const userExists = await this.findByEmail({
-      'emails.identifier': user.emails[0].identifier,
+  async create(userDto: UserDto): Promise<UserDocument> {
+    const alreadyExists = await this.findByEmail({
+      'emails.identifier': userDto.emails[0].identifier,
     });
 
-    if (userExists) throw new ForbiddenException();
+    if (alreadyExists) throw new ForbiddenException();
+
+    const newUser = await this.usersModel.create(userDto);
 
     const generatedSalt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(user.password, generatedSalt);
+    const hashedPassword = await bcrypt.hash(userDto.password, generatedSalt);
 
-    console.log(user);
+    const newAuth = {
+      userId: newUser.id,
+      userSalt: generatedSalt,
+      userPassword: hashedPassword,
+      roles: [],
+    };
 
-    const newUser = await this.usersModel.create({
-      ...user,
-      password: hashedPassword,
-      salt: generatedSalt,
-    });
+    await this.authService.createAuth(newAuth);
 
-    return this.serializeUser(newUser);
+    return newUser;
+  }
+
+  async find(filterQuery: FilterQuery<UserDocument>): Promise<UserDocument[]> {
+    const users = await this.usersModel.find(filterQuery);
+
+    if (users) return users;
+    throw new NotFoundException();
+  }
+
+  async findOne(filterQuery: FilterQuery<UserDocument>): Promise<UserDocument> {
+    const user = await this.usersModel.findOne(filterQuery);
+    if (user) return user;
+    throw new NotFoundException();
   }
 
   async update(
     filterQuery: FilterQuery<UserDocument>,
-    userUpdates: UpdateUserDto,
-  ): Promise<UserDto> {
-    const existingUser = await this.usersModel.findById(filterQuery);
+    userUpdates: UserDto,
+  ): Promise<UserDocument> {
+    const userFound = await this.usersModel.findById(filterQuery);
 
-    if (existingUser) {
+    if (userFound) {
       if (userUpdates.personalInfo) {
-        existingUser.personalInfo = {
-          ...existingUser.personalInfo,
+        userFound.personalInfo = {
+          ...userFound.personalInfo,
           ...userUpdates.personalInfo,
         };
       }
 
-      if (userUpdates.phones.length !== 0) {
-        existingUser.phones = userUpdates.phones;
+      if (userUpdates.phones?.length !== 0) {
+        userFound.phones = userUpdates.phones;
       }
 
-      if (userUpdates.emails.length !== 0) {
-        existingUser.emails = userUpdates.emails;
+      if (userUpdates.emails?.length !== 0) {
+        userFound.emails = userUpdates.emails;
       }
 
-      if (userUpdates.tags.length !== 0) {
-        existingUser.tags = userUpdates.tags;
+      if (userUpdates.tags?.length !== 0) {
+        userFound.tags = userUpdates.tags;
       }
 
-      const user = await existingUser.save();
-      return this.serializeUser(user);
+      return await userFound.save();
+    }
+    throw new NotFoundException();
+  }
+
+  async delete(
+    filterQuery: FilterQuery<UserDocument>,
+  ): Promise<{ message: string }> {
+    const result = await this.usersModel.findByIdAndDelete(filterQuery);
+
+    if (result) {
+      await this.authService.deleteAuth(filterQuery._id);
+      return { message: 'User deleted' };
     }
     throw new NotFoundException();
   }
@@ -87,10 +101,5 @@ export class UsersRepository {
     filterQuery: FilterQuery<UserDocument>,
   ): Promise<UserDocument> {
     return await this.usersModel.findOne(filterQuery);
-  }
-
-  private serializeUser(user: UserDocument): UserDto {
-    const { _id, personalInfo, phones, emails, tags, roles } = user;
-    return { _id, personalInfo, phones, emails, tags, roles };
   }
 }

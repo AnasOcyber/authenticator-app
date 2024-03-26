@@ -3,31 +3,21 @@ import { HydratedDocument } from 'mongoose';
 import { Email } from './email.schema';
 import { PersonalInfo } from './personal-info.schema';
 import { Phone } from './phone.schema';
-import { Role } from './roles/roles.schema';
 
 export type UserDocument = HydratedDocument<User>;
 
 @Schema()
 export class User {
-  @Prop({ type: PersonalInfo })
+  @Prop()
   personalInfo: PersonalInfo;
 
   @Prop()
-  password: string;
-
-  @Prop()
-  roles: Role[];
-
-  @Prop()
-  salt: string;
-
-  @Prop({ type: [Phone] })
   phones: Phone[];
 
-  @Prop({ type: [Email] })
+  @Prop()
   emails: Email[];
 
-  @Prop([String])
+  @Prop()
   tags: string[];
 }
 

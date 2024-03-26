@@ -1,27 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { RolesRepository } from 'src/repositories/roles.respository';
+import { RoleDocument } from 'src/schemas/roles/role.schema.';
 
 @Injectable()
 export class RolesService {
   constructor(private rolesRepository: RolesRepository) {}
 
-  findAllRoles() {
-    return this.rolesRepository.findAll();
-  }
-
-  findRoleById(id: string) {
-    return this.rolesRepository.find(id);
-  }
-
-  createRole(roleDto: any) {
+  createRole(roleDto: any): Promise<RoleDocument> {
     return this.rolesRepository.create(roleDto);
   }
 
-  updateRole(id: string, roleDto: any) {
-    return this.rolesRepository.update(id, roleDto);
+  findAllRoles(): Promise<RoleDocument[]> {
+    const filterQuery = {};
+    return this.rolesRepository.findAll(filterQuery);
   }
 
-  deleteRole(id: string) {
-    return this.rolesRepository.delete(id);
+  findRoleById(id: string): Promise<RoleDocument> {
+    const filterQuery = { _id: id };
+    return this.rolesRepository.find(filterQuery);
+  }
+
+  updateRole(id: string, roleDto: any): Promise<RoleDocument> {
+    const filterQuery = { _id: id };
+    return this.rolesRepository.update(filterQuery, roleDto);
+  }
+
+  deleteRole(id: string): Promise<{ message: string }> {
+    const filterQuery = { _id: id };
+    return this.rolesRepository.delete(filterQuery);
   }
 }

@@ -1,41 +1,33 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '../repositories/users.repository';
-import { CreateUserDto } from 'src/dto/user/create-user.dto';
-import { UpdateUserDto } from 'src/dto/user/update-user.dto';
-import { UserDto } from 'src/dto/user/user.dto';
-import { validate } from 'class-validator';
+import { UserDto } from 'src/dtos/user/user.dto';
+import { UserDocument } from 'src/schemas/users/user.schema';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  findUserById(userId: string): Promise<UserDto> {
-    return this.usersRepository.findOne({ _id: userId });
+  async createUser(userDto: UserDto): Promise<UserDocument> {
+    return this.usersRepository.create(userDto);
   }
 
-  findAllUsers(): Promise<UserDto[]> {
-    return this.usersRepository.find({});
+  findAllUsers(): Promise<UserDocument[]> {
+    const filterQuery = {};
+    return this.usersRepository.find(filterQuery);
   }
 
-  async createUser(userDto: CreateUserDto): Promise<UserDto> {
-    const { personalInfo, password, phones, emails, tags, roles } = userDto;
-
-    const errors = await validate(userDto);
-    if (errors.length > 0) {
-      throw new BadRequestException();
-    }
-
-    return this.usersRepository.create({
-      personalInfo,
-      password,
-      phones,
-      emails,
-      tags,
-      roles,
-    });
+  findUserById(userId: string): Promise<UserDocument> {
+    const filterQuery = { _id: userId };
+    return this.usersRepository.findOne(filterQuery);
   }
 
-  updateUser(userId: string, userUpdates: UpdateUserDto): Promise<UserDto> {
-    return this.usersRepository.update({ _id: userId }, userUpdates);
+  updateUser(userId: string, userUpdates: UserDto): Promise<UserDocument> {
+    const filterQuery = { _id: userId };
+    return this.usersRepository.update(filterQuery, userUpdates);
+  }
+
+  deleteUser(userId: string): Promise<{ message: string }> {
+    const filterQuery = { _id: userId };
+    return this.usersRepository.delete(filterQuery);
   }
 }
